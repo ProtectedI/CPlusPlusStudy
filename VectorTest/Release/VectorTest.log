@@ -1,8 +1,8 @@
 ﻿  VectorTest.cpp
-F:\Projects\C++\Study\VectorTest\VectorTest.cpp(12,20): warning C4018: “<”: 有符号/无符号不匹配
+F:\Projects\C++\CPlusPlusStudy\VectorTest\VectorTest.cpp(16,20): warning C4018: “<”: 有符号/无符号不匹配
   正在生成代码
-  5 of 97 functions ( 5.2%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
+  1 of 122 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
-  VectorTest.vcxproj -> F:\Projects\C++\Study\Release\VectorTest.exe
+  VectorTest.vcxproj -> F:\Projects\C++\CPlusPlusStudy\Release\VectorTest.exe
