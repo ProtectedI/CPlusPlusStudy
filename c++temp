@@ -1,0 +1,89 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <Windows.h>
+#include <tlhelp32.h>
+#include <psapi.h>
+
+// 将 wide string 转换为 std::string
+std::string WideStringToString(const std::wstring& wstr)
+{
+	int bufferSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, NULL, 0, NULL, NULL);
+	std::string str(bufferSize, 0);
+	WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], bufferSize, NULL, NULL);
+	return str;
+}
+
+std::wstring GetExecutablePathW()
+{
+	wchar_t buffer[MAX_PATH];
+	GetModuleFileNameW(NULL, buffer, MAX_PATH);
+	return std::wstring(buffer);
+}
+
+std::wstring GetExecutableDirW()
+{
+	std::wstring executablePath = GetExecutablePathW();
+	size_t pos = executablePath.find_last_of(L"\\/");
+	return (std::wstring::npos == pos) ? L"" : executablePath.substr(0, pos);
+}
+
+// 获取给定进程ID的可执行文件路径
+std::wstring GetProcessExecutablePath(DWORD processID)
+{
+    std::wstring exePath(MAX_PATH, L'\0');
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+    if (hProcess)
+    {
+        if (GetModuleFileNameExW(hProcess, NULL, &exePath[0], MAX_PATH))
+        {
+            exePath.resize(wcslen(exePath.c_str()));
+        }
+        CloseHandle(hProcess);
+    }
+    return exePath;
+}
+
+// 检测指定路径下的exe是否正在运行
+bool IsExeRunning(const std::wstring& exePath)
+{
+    bool isRunning = false;
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot != INVALID_HANDLE_VALUE)
+    {
+        PROCESSENTRY32W pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32W);
+        if (Process32FirstW(hSnapshot, &pe32))
+        {
+            do
+            {
+                std::wstring processExePath = GetProcessExecutablePath(pe32.th32ProcessID);
+                if (_wcsicmp(processExePath.c_str(), exePath.c_str()) == 0)
+                {
+                    isRunning = true;
+                    break;
+                }
+            } while (Process32NextW(hSnapshot, &pe32));
+        }
+        CloseHandle(hSnapshot);
+    }
+    return isRunning;
+}
+
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
+{
+	std::wstring exePathW = GetExecutablePathW();
+	std::wstring exeDirW = GetExecutableDirW();
+
+	/*std::string exePath = WideStringToString(exePathW);
+	std::string exeDir = WideStringToString(exeDirW);*/
+
+    if(IsExeRunning(exePathW))
+        MessageBox(NULL, L"正在运行", L"标题", MB_OKCANCEL);
+	auto hWnd = MessageBox(NULL, exePathW.c_str(), L"标题", MB_OKCANCEL);
+	hWnd = MessageBox(NULL, exeDirW.c_str(), L"标题", MB_OKCANCEL);/*
+	if (hWnd == IDOK)
+		return MessageBox(NULL, L"OK", L"标题", MB_OK);
+	else
+		return MessageBox(NULL, L"Cancel", L"标题", MB_OK);*/
+}
